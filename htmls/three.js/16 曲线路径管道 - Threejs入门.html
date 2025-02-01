@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/images/logo.svg" color="#222" />
+    <title>Threejs - VCAN</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+      #app {
+        height: 100vh;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/htmls/three.js/build/three.module.min.js",
+          "three/addons/": "/htmls/three.js/examples/jsm/"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import * as THREE from 'three'
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+
+      const scene = new THREE.Scene()
+
+      const camera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+      )
+      camera.position.y = 30
+
+      const renderer = new THREE.WebGLRenderer()
+      renderer.setSize(window.innerWidth, window.innerHeight)
+      app.appendChild(renderer.domElement)
+
+      // 创建环境光
+      const ambLight = new THREE.AmbientLight()
+      // 创建平行光
+      const dirLight = new THREE.DirectionalLight()
+      // 设置平行光位置
+      dirLight.position.set(5, 5, 5)
+      // 添加到场景中
+      scene.add(ambLight, dirLight)
+
+      // 利用曲线路径，绘制一个管道
+      // code start
+      const p1 = new THREE.Vector3(0, 0, 10)
+      const p2 = new THREE.Vector3(0, 0, 3)
+      const p3 = new THREE.Vector3(0, 0, 0)
+      const p4 = new THREE.Vector3(3, 0, 0)
+      const p5 = new THREE.Vector3(10, 0, 0)
+
+      const line1 = new THREE.LineCurve3(p1, p2)
+      const curve = new THREE.QuadraticBezierCurve3(p2, p3, p4)
+      const line2 = new THREE.LineCurve3(p4, p5)
+
+      const curvePath = new THREE.CurvePath()
+      curvePath.curves.push(line1, curve, line2)
+
+      const geometry = new THREE.TubeGeometry(curvePath, 50, 0.5, 50)
+
+      const material = new THREE.MeshLambertMaterial({
+        color: 0x00ffff,
+        side: THREE.DoubleSide
+      })
+
+      const mesh = new THREE.Mesh(geometry, material)
+      scene.add(mesh)
+      // code end
+
+      const controls = new OrbitControls(camera, app)
+
+      renderer.setAnimationLoop(() => {
+        renderer.render(scene, camera)
+      })
+    </script>
+  </body>
+</html>
