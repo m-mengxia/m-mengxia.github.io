@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/images/logo.svg" color="#222" />
+    <title>Threejs - VCAN</title>
+
+    <script src="../libs/ace.min.js"></script>
+    <script src="../libs/parser-babel.js"></script>
+    <script src="../libs/standalone.js"></script>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      #code-editor,
+      #viwer {
+        width: 60%;
+        height: 100vh;
+        float: left;
+        border: 0;
+      }
+      #code-editor {
+        width: 40%;
+      }
+
+      ::-webkit-scrollbar {
+        width: 9px;
+        height: 9px;
+      }
+      ::-webkit-scrollbar-track {
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background-color: rgb(157, 155, 155);
+        border-radius: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="code-editor"></div>
+    <iframe id="viwer"></iframe>
+
+    <script>
+      const params = new URLSearchParams(location.search)
+
+      let jsCode = ''
+      let htmlCode = `
+        <html>
+          <style>*{margin:0; padding:0;}; #app{ height: 100vh; overflow: hidden;}<\/style>
+          <body>
+            <div id="app"><\/div>
+            <script type="module"><\/script>
+          <\/body>
+        <\/html>
+      `
+      const regex = /(<script\s+type="module">)([\s\S]*?)(<\/script>)/i
+
+      fetch(`./${params.get('demourl')}`)
+        .then((res) => {
+          if (res.ok) {
+            return res.text()
+          } else {
+            throw new Error('请求失败')
+          }
+        })
+        .then((html) => {
+          const { protocol, host } = location
+
+          htmlCode = html.replaceAll(
+            '/htmls/three.js',
+            protocol + '//' + host + '/htmls/three.js'
+          )
+
+          const matches = htmlCode.match(regex)
+          if (matches) {
+            jsCode = matches[2]
+            jsCode = jsCode.replace(
+              /(\/\/ code start)([\s\S]*?)(\/\/ code end)/g,
+              '$1\n\n$3'
+            )
+          }
+
+          editor.setValue(jsCode, -1)
+
+          pressCode()
+        })
+        .catch((err) => {
+          console.error(err)
+          pressCode()
+        })
+
+      const editor = ace.edit('code-editor')
+      editor.setTheme('ace/theme/monokai')
+      editor.getSession().setMode('ace/mode/javascript')
+      editor.getSession().setTabSize(2)
+      editor.getSession().setUseSoftTabs(true)
+
+      editor.setOption('wrap', 'free')
+      editor.setOption('showPrintMargin', false)
+      editor.setOption('useWorker', false)
+
+      editor.setFontSize(16)
+
+      function pressCode() {
+        jsCode = formatCode()
+
+        editor.setValue(jsCode, -1)
+
+        runCode()
+      }
+
+      function runCode() {
+        jsCode = `
+          app.style = ''
+          window.onerror = function(message) {
+            app.style='color: red; padding: 10px'
+            app.innerHTML = message
+          };
+          ${jsCode}
+        `
+        htmlCode = htmlCode.replace(regex, `$1${jsCode}$3`)
+        const blob = new Blob([htmlCode], {
+          type: 'text/html',
+        })
+        viwer.src = URL.createObjectURL(blob)
+      }
+
+      function formatCode() {
+        const unformattedCode = editor.getValue()
+        const formattedCode = prettier.format(unformattedCode, {
+          plugins: [prettierPlugins.babel],
+          parser: 'babel',
+          tabWidth: 2,
+          semi: false,
+          singleQuote: true,
+        })
+        return formattedCode
+      }
+
+      function saveCode() {
+        const { row, column } = editor.getCursorPosition()
+
+        console.clear()
+
+        pressCode()
+        editor.moveCursorTo(row, column)
+      }
+
+      editor.commands.addCommand({
+        bindKey: {
+          win: 'Ctrl-Shift-F',
+          mac: 'Command-Shift-F',
+        },
+        exec: pressCode,
+      })
+
+      editor.commands.addCommand({
+        bindKey: {
+          win: 'Ctrl-S',
+          mac: 'Command-S',
+        },
+        exec: saveCode,
+      })
+    </script>
+  </body>
+</html>

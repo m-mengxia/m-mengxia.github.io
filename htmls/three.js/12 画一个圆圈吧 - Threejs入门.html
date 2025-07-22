@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/images/logo.svg" color="#222" />
+    <title>Threejs - VCAN</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+      #app {
+        height: 100vh;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/htmls/three.js/build/three.module.min.js",
+          "three/addons/": "/htmls/three.js/examples/jsm/"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import * as THREE from 'three'
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+
+      const scene = new THREE.Scene()
+
+      const camera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+      )
+      camera.position.z = 10
+
+      const renderer = new THREE.WebGLRenderer()
+      renderer.setSize(window.innerWidth, window.innerHeight)
+      app.appendChild(renderer.domElement)
+
+      // 画一个圆吧，尝试 BufferAttribute 和 setFromPoints 两种方式
+      // code start
+      const geo = new THREE.BufferGeometry()
+      const mat = new THREE.LineBasicMaterial()
+
+      const R = 5
+      const N = 50
+      const sp = (2 * Math.PI) / N
+
+      const arr = []
+      for (let i = 0; i < N; i++) {
+        const angle = sp * i
+        const x = R * Math.cos(angle)
+        const y = R * Math.sin(angle)
+        arr.push(x, y, 0)
+      }
+
+      const vertices = new Float32Array(arr)
+      const attribute = new THREE.BufferAttribute(vertices, 3)
+      geo.attributes.position = attribute
+
+      const line = new THREE.LineLoop(geo, mat)
+      scene.add(line)
+      // code end
+
+      const controls = new OrbitControls(camera, app)
+
+      renderer.setAnimationLoop(() => {
+        renderer.render(scene, camera)
+      })
+    </script>
+  </body>
+</html>
