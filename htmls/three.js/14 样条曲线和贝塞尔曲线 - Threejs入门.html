@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/images/logo.svg" color="#222" />
+    <title>Threejs - VCAN</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+      #app {
+        height: 100vh;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/htmls/three.js/build/three.module.min.js",
+          "three/addons/": "/htmls/three.js/examples/jsm/"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import * as THREE from 'three'
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+
+      const scene = new THREE.Scene()
+
+      const camera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+      )
+      camera.position.z = 30
+
+      const renderer = new THREE.WebGLRenderer()
+      renderer.setSize(window.innerWidth, window.innerHeight)
+      app.appendChild(renderer.domElement)
+
+      // 三维样条曲线
+      // code start
+      // 三维向量Vector3创建一组顶点坐标
+      const arr = [
+        new THREE.Vector3(-5, 2, 9),
+        new THREE.Vector3(-1, 4, 4),
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(6, -6, 0),
+        new THREE.Vector3(7, 0, 8),
+      ]
+      const curve = new THREE.CatmullRomCurve3(arr)
+
+      const geo = new THREE.BufferGeometry()
+      geo.setFromPoints(curve.getPoints(50))
+      const mat = new THREE.LineBasicMaterial()
+      const line = new THREE.Line(geo, mat)
+      scene.add(line)
+      // code end
+
+      // 贝塞尔曲线
+      // code start
+      // p1、p2、p3表示三个点坐标
+      // p1、p3是曲线起始点，p2是曲线的控制点
+      const p1 = new THREE.Vector2(-8, 0)
+      const p2 = new THREE.Vector2(2, 10)
+      const p3 = new THREE.Vector2(8, 0)
+      const curve2 = new THREE.QuadraticBezierCurve(p1, p2, p3)
+
+      const geo2 = new THREE.BufferGeometry()
+      geo2.setFromPoints(curve2.getPoints(50))
+      const mat2 = new THREE.LineBasicMaterial()
+      const line2 = new THREE.Line(geo2, mat2)
+      scene.add(line2)
+      // code end
+
+      const controls = new OrbitControls(camera, app)
+
+      renderer.setAnimationLoop(() => {
+        renderer.render(scene, camera)
+      })
+    </script>
+  </body>
+</html>

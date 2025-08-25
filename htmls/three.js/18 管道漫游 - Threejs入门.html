@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/images/logo.svg" color="#222" />
+    <title>Threejs - VCAN</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+      #app {
+        height: 100vh;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/htmls/three.js/build/three.module.min.js",
+          "three/addons/": "/htmls/three.js/examples/jsm/"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import * as THREE from 'three'
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+
+      const scene = new THREE.Scene()
+
+      const camera = new THREE.PerspectiveCamera(
+        90,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+      )
+      camera.position.set(0, 0, 30)
+
+      const renderer = new THREE.WebGLRenderer()
+      renderer.setSize(window.innerWidth, window.innerHeight)
+      app.appendChild(renderer.domElement)
+
+      const ambLight = new THREE.AmbientLight()
+      const dirLight = new THREE.DirectionalLight()
+      dirLight.position.set(5, 5, 5)
+      scene.add(ambLight, dirLight)
+
+      // code start
+      const path = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-5, 2, 9),
+        new THREE.Vector3(-10, 4, 4),
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(6, -6, 0),
+        new THREE.Vector3(9, -4, 6),
+        new THREE.Vector3(12, 3, 3),
+      ])
+      const geometry = new THREE.TubeGeometry(path, 100, 0.5, 30)
+      const texLoader = new THREE.TextureLoader()
+
+      const texture = texLoader.load('./imgs/砖墙.jpg')
+      texture.wrapS = THREE.RepeatWrapping
+      texture.repeat.x = 20
+
+      const material = new THREE.MeshLambertMaterial({
+        map: texture,
+        side: THREE.DoubleSide, //双面显示看到管道内壁
+      })
+      const mesh = new THREE.Mesh(geometry, material)
+
+      scene.add(mesh)
+
+      const pointsArr = path.getSpacedPoints(5000)
+
+      let i = 0
+      renderer.setAnimationLoop(() => {
+        if (i < pointsArr.length - 1) {
+          camera.position.copy(pointsArr[i])
+          camera.lookAt(pointsArr[i + 1])
+          i += 1
+        } else {
+          i = 0
+        }
+        renderer.render(scene, camera)
+      })
+      // code end
+
+      const controls = new OrbitControls(camera, app)
+    </script>
+  </body>
+</html>

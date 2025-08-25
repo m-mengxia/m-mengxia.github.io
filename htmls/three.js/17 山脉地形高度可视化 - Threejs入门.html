@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/images/logo.svg" color="#222" />
+    <title>Threejs - VCAN</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+      #app {
+        height: 100vh;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/htmls/three.js/build/three.module.min.js",
+          "three/addons/": "/htmls/three.js/examples/jsm/"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import * as THREE from 'three'
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+      import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+
+      const scene = new THREE.Scene()
+
+      const camera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+      )
+      camera.position.set(20, 5, 0)
+
+      const renderer = new THREE.WebGLRenderer()
+      renderer.setSize(window.innerWidth, window.innerHeight)
+      app.appendChild(renderer.domElement)
+
+      // 创建环境光
+      const ambLight = new THREE.AmbientLight()
+      // 创建平行光
+      const dirLight = new THREE.DirectionalLight()
+      // 设置平行光位置
+      dirLight.position.set(5, 5, 5)
+      // 添加到场景中
+      scene.add(ambLight, dirLight)
+
+      // 利用混合颜色，绘制一个渐变的地形
+      // code start
+      const loader = new GLTFLoader()
+      loader.load('./models/地形.glb', glb => {
+        glb.scene.scale.set(3, 3, 3)
+        const mesh = glb.scene.children[0]
+        const pos = mesh.geometry.attributes.position
+        const count = pos.count
+
+        const yArr = []
+        for(let i=0; i<count; i++) {
+          yArr.push(pos.getY(i))
+        }
+
+        yArr.sort((a, b) => a - b)
+
+        const minY = yArr[0]
+        const maxY = yArr[yArr.length - 1]
+        const yHeight = maxY - minY
+
+        const colorArr = []
+        const c1 = new THREE.Color(0x0000ff)
+        const c2 = new THREE.Color(0xff0000)
+
+        for(let i=0; i<count; i++) {
+          const percent = (pos.getY(i) - minY) / yHeight
+          
+          const c = c1.clone().lerp(c2, percent)
+          colorArr.push(c.r, c.g, c.b)
+        }
+
+        const colors = new Float32Array(colorArr)
+
+        mesh.geometry.attributes.color = new THREE.BufferAttribute(colors, 3)
+
+        mesh.material = new THREE.MeshLambertMaterial({
+          vertexColors: true,
+          side: THREE.DoubleSide
+        })
+        
+        scene.add(glb.scene)
+      })
+      // code end
+
+      const controls = new OrbitControls(camera, app)
+
+      renderer.setAnimationLoop(() => {
+        renderer.render(scene, camera)
+      })
+    </script>
+  </body>
+</html>

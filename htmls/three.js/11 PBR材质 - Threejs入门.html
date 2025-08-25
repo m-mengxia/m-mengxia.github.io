@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/images/logo.svg" color="#222" />
+    <title>Threejs - VCAN</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+      #app {
+        height: 100vh;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/htmls/three.js/build/three.module.min.js",
+          "three/addons/": "/htmls/three.js/examples/jsm/"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import * as THREE from 'three'
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+
+      const scene = new THREE.Scene()
+      const camera = new THREE.PerspectiveCamera(
+        50,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+      )
+      camera.position.set(0, 0, 3)
+      const renderer = new THREE.WebGLRenderer()
+      renderer.setSize(window.innerWidth, window.innerHeight)
+      const sketch = document.getElementById('app')
+      sketch.appendChild(renderer.domElement)
+
+      const geo = new THREE.BoxGeometry()
+      const mat = new THREE.MeshStandardMaterial({
+        // 设置 金属度 和 粗糙度
+        // code start
+        metalness: 0.1, // 金属度
+        roughness: 0.1, // 粗糙度
+        // code end
+      })
+      const cube = new THREE.Mesh(geo, mat)
+      scene.add(cube)
+
+      const ambient = new THREE.AmbientLight('#fff', 0.1)
+      scene.add(ambient)
+
+      const dirLight = new THREE.DirectionalLight()
+      dirLight.position.set(1, 1, 5)
+      scene.add(dirLight)
+
+      new OrbitControls(camera, sketch)
+
+      renderer.setAnimationLoop(() => {
+        renderer.render(scene, camera)
+      })
+    </script>
+  </body>
+</html>
